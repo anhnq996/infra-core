@@ -1,0 +1,7 @@
+k9s:
+  refreshRate: 2
+  maxRequestsPerSecond: 100
+  ui:
+    headless: false
+    logoless: false
+    crumbsless: false
