@@ -76,6 +76,16 @@ nano k8s/apps/gotalk/secret-web.yaml
 
 Sau khi đã Pull Code về, Sửa đổi tên Image và Setup toàn bộ Env. Bạn làm theo các bước:
 
+### Cài Đặt Công Cụ Helm (Nếu VPS chưa có)
+Hệ thống Deploy này sử dụng **Helm**. Nếu chạy lệnh báo lỗi `make: helm: No such file or directory`, hãy cài đặt Helm bằng cách chạy đoạn lệnh sau:
+```bash
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+sudo ./get_helm.sh
+rm get_helm.sh
+```
+
+### Các Bước Deploy Chính:
 ```bash
 # 1. Tạo các namespace cần thiết (Chỉ cần làm 1 lần)
 make setup
@@ -92,6 +102,13 @@ kubectl apply -f k8s/apps/gotalk/secret-web.yaml
 make deploy-gotalk
 # (Hoặc make deploy để deploy cả infra và gotalk)
 ```
+
+**⚠️ Làm sao để cập nhật nếu lỡ đổi Biến Môi Trường (Env)?**
+Nếu bạn vào sửa đổi file `values.yaml` (các biến thường) hoặc file chạy mã hóa base64 đưa vào trong `k8s/apps/gotalk/secret-api.yaml`/`secret-web.yaml` (các biến ẩn), thì bạn chỉ việc gõ lại đúng 1 dòng lệnh trên là đủ:
+```bash
+make deploy-gotalk
+```
+Helm rất thông minh, nó sẽ đi so sánh tự động file YAML của bạn với phiên bản đang chạy. Nếu nó thấy có sự thay đổi, nó sẽ tự update biến mới đè vào, sau đó tự động hủy mấy cái Pod cũ đi và từ từ kéo các Pod mới có cấu hình mới lên chạy thay thế!
 
 ---
 

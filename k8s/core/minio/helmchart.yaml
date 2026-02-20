@@ -9,7 +9,6 @@ metadata:
 spec:
   repo: https://charts.min.io
   chart: minio
-  version: "5.4.0"
   targetNamespace: infra
   createNamespace: false
   valuesContent: |-

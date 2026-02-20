@@ -9,7 +9,6 @@ metadata:
 spec:
   repo: https://charts.bitnami.com/bitnami
   chart: redis
-  version: "20.6.0"
   targetNamespace: infra
   createNamespace: false
   valuesContent: |-

@@ -12,7 +12,6 @@ metadata:
 spec:
   repo: https://charts.bitnami.com/bitnami
   chart: postgresql
-  version: "16.4.0"             # Ghim version để tránh breaking changes
   targetNamespace: infra        # Resources tạo ra sẽ nằm ở namespace infra
   createNamespace: false        # Đã tạo namespace ở namespaces.yaml
   valuesContent: |-
