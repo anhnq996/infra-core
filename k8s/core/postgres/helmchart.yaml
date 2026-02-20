@@ -29,10 +29,11 @@ spec:
         enabled: true
         size: 5Gi
         storageClass: local-path   # K3s default storage class
-
-    # Chỉ expose trong cluster, không ra ngoài
-    service:
-      type: ClusterIP
+      # Mở NodePort để truy cập Database từ công cụ bên ngoài (DBeaver, DataGrip...)
+      service:
+        type: NodePort
+        nodePorts:
+          postgresql: "30432"
 
     # Metrics cho monitoring (optional)
     metrics:
