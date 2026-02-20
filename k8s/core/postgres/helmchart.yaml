@@ -33,7 +33,7 @@ spec:
       service:
         type: NodePort
         nodePorts:
-          postgresql: "30432"
+          postgresql: 30432
 
     # Metrics cho monitoring (optional)
     metrics:
