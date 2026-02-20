@@ -39,7 +39,8 @@ setup:
 	@echo "   k8s/core/postgres/secret.yaml"
 	@echo "   k8s/core/redis/secret.yaml"
 	@echo "   k8s/core/minio/secret.yaml"
-	@echo "   k8s/apps/gotalk/secret.yaml"
+	@echo "   k8s/apps/gotalk/secret-api.yaml"
+	@echo "   k8s/apps/gotalk/secret-web.yaml"
 	@echo ""
 	@echo "✅ Setup xong. Chạy: make deploy"
 
@@ -86,7 +87,8 @@ deploy-core: deploy-traefik deploy-postgres deploy-redis deploy-minio deploy-mai
 # ============================================
 deploy-gotalk:
 	@echo ">>> Deploy GoTalk App..."
-	$(KUBECTL) apply -f k8s/apps/gotalk/secret.yaml
+	$(KUBECTL) apply -f k8s/apps/gotalk/secret-api.yaml
+	$(KUBECTL) apply -f k8s/apps/gotalk/secret-web.yaml
 	$(HELM) upgrade --install gotalk ./charts/gotalk \
 		--namespace gotalk \
 		--create-namespace \
