@@ -1,4 +1,18 @@
 .DS_Store
-**/.env
-**/data/
-**/certs/
+
+# ============================================
+# Kubernetes Secrets (KHÔNG bao giờ commit!)
+# Chỉ *.example được commit, file thật thì không.
+# ============================================
+k8s/core/postgres/secret.yaml
+k8s/core/redis/secret.yaml
+k8s/core/minio/secret.yaml
+k8s/apps/gotalk/secret-api.yaml
+k8s/apps/gotalk/secret-web.yaml
+k8s/core/traefik/dashboard.yaml
+
+# ============================================
+# Helm generated files
+# ============================================
+charts/*/charts/
+charts/*/*.lock

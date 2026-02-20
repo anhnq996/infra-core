@@ -1,0 +1,31 @@
+# ============================================
+# Redis - HelmChart CRD (K3s Native)
+# ============================================
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: redis
+  namespace: kube-system
+spec:
+  repo: https://charts.bitnami.com/bitnami
+  chart: redis
+  version: "20.6.0"
+  targetNamespace: infra
+  createNamespace: false
+  valuesContent: |-
+    auth:
+      enabled: true
+      existingSecret: redis-secret
+      existingSecretPasswordKey: redis-password
+
+    # Single node (standalone), không cần replica cho VPS nhỏ
+    architecture: standalone
+
+    master:
+      persistence:
+        enabled: true
+        size: 2Gi
+        storageClass: local-path
+
+    service:
+      type: ClusterIP

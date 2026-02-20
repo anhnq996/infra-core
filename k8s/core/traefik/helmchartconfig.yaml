@@ -1,0 +1,54 @@
+# ============================================
+# Traefik - HelmChartConfig (K3s Native)
+# ============================================
+# K3s đã cài sẵn Traefik. File này override cấu hình mặc định.
+# Áp dụng: kubectl apply -f k8s/core/traefik/helmchartconfig.yaml
+# ============================================
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    # Tắt gửi usage data
+    globalArguments:
+      - "--global.sendanonymoususage=false"
+
+    additionalArguments:
+      # Let's Encrypt - HTTP Challenge
+      # Yêu cầu: port 80 mở, domain trỏ về server
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=anhnq@anhnq.io.vn"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
+      # Cho phép kết nối tới backend không có SSL (trong cluster)
+      - "--serversTransport.insecureSkipVerify=true"
+
+    # Tự động redirect HTTP → HTTPS
+    ports:
+      web:
+        redirectTo:
+          port: websecure
+          permanent: true
+      websecure:
+        tls:
+          certResolver: letsencrypt
+
+    # Lưu cert vào persistent volume
+    persistence:
+      enabled: true
+      size: 128Mi
+
+    # Tắt dashboard expose mặc định (sẽ dùng IngressRoute riêng)
+    ingressRoute:
+      dashboard:
+        enabled: false
+
+    # RBAC
+    rbac:
+      enabled: true
+
+    # Service type
+    service:
+      type: LoadBalancer

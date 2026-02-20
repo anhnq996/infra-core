@@ -1,0 +1,127 @@
+# ============================================
+# GoTalk Helm Chart - Values
+# ============================================
+# Phân loại:
+#   - Non-sensitive config: để ở đây, commit được
+#   - Sensitive config: để trong Kubernetes Secret (gitignored)
+#
+# Image names: đặt tại api.image & web.image bên dưới
+# ============================================
+
+# ============================================
+# API (Go Backend)
+# ============================================
+api:
+  # ---- Image ----
+  # Tên image Docker Hub của BE repo (gotalk-api)
+  # Format: <dockerhub-username>/<repo-name>
+  image:
+    repository: anhnq996/gotalk-api   # ← SỬA chỗ này
+    tag: v260220.1                    # ← CI/CD sẽ update tag này
+    pullPolicy: Always
+
+  replicas: 1
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  ingress:
+    host: api-gotalk.anhnq.io.vn
+    certResolver: letsencrypt
+    entrypoint: websecure
+
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+  # ---- Non-sensitive env vars (commit được) ----
+  # Sensitive vars (DB_PASSWORD, JWT_SECRET...) nằm trong Secret
+  env:
+    APP_ENV: production
+    APP_PORT: "8080"
+
+    # Database - host/port/user/name là không nhạy cảm
+    # DB_PASSWORD được inject từ Secret: gotalk-api-secret
+    DB_HOST: "postgres-postgresql.infra.svc.cluster.local"
+    DB_PORT: "5432"
+    DB_USER: "gotalk_user"
+    DB_NAME: "gotalk"
+    DB_SSLMODE: disable
+
+    # Redis - chỉ host/port không nhạy cảm
+    # REDIS_PASSWORD được inject từ Secret
+    REDIS_HOST: "redis-master.infra.svc.cluster.local"
+    REDIS_PORT: "6379"
+
+    # JWT - chỉ expiry, secret nằm trong Secret
+    JWT_EXPIRY: "24h"
+
+    # MinIO - endpoint/bucket không nhạy cảm
+    # MINIO_ACCESS_KEY, MINIO_SECRET_KEY trong Secret
+    MINIO_ENDPOINT: "minio.infra.svc.cluster.local:9000"
+    MINIO_BUCKET: "gotalk-media"
+    MINIO_PUBLIC_URL: "https://storage.anhnq.io.vn"
+    MINIO_USE_SSL: "false"
+
+    # SMTP - host/port/from không nhạy cảm
+    SMTP_HOST: "mailpit.infra.svc.cluster.local"
+    SMTP_PORT: "1025"
+    SMTP_USERNAME: ""
+    SMTP_PASSWORD: ""
+    SMTP_FROM: "noreply@gotalk.anhnq.io.vn"
+    SMTP_FROM_NAME: "GoTalk"
+
+    # CORS
+    CORS_ORIGINS: "https://gotalk.anhnq.io.vn"
+
+# ============================================
+# Web (Next.js Frontend)
+# ============================================
+web:
+  # ---- Image ----
+  # Tên image Docker Hub của FE repo (gotalk-web)
+  image:
+    repository: anhnq996/gotalk-web   # ← SỬA chỗ này
+    tag: v260220.1
+    pullPolicy: Always
+
+  replicas: 1
+
+  service:
+    type: ClusterIP
+    port: 3000
+
+  ingress:
+    host: gotalk.anhnq.io.vn
+    certResolver: letsencrypt
+    entrypoint: websecure
+
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+  # ---- Non-sensitive env vars ----
+  # NEXT_PUBLIC_GOOGLE_CLIENT_ID, NEXT_PUBLIC_WS_URL nằm trong Secret
+  env:
+    NODE_ENV: production
+    NEXT_PUBLIC_API_URL: "https://api-gotalk.anhnq.io.vn/api/v1"
+
+# ============================================
+# Secrets References
+# ============================================
+# Tên Kubernetes Secret chứa sensitive vars.
+# Tạo trên server từ file example:
+#   kubectl apply -f k8s/apps/gotalk/secret-api.yaml
+#   kubectl apply -f k8s/apps/gotalk/secret-web.yaml
+existingSecrets:
+  api: gotalk-api-secret   # inject vào API container
+  web: gotalk-web-secret   # inject vào Web container

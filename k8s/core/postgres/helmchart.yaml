@@ -1,0 +1,40 @@
+# ============================================
+# PostgreSQL - HelmChart CRD (K3s Native)
+# ============================================
+# K3s tự động cài bitnami/postgresql khi apply file này.
+# Không cần chạy 'helm install' thủ công.
+# ============================================
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: postgres
+  namespace: kube-system        # HelmChart CRD phải ở kube-system
+spec:
+  repo: https://charts.bitnami.com/bitnami
+  chart: postgresql
+  version: "16.4.0"             # Ghim version để tránh breaking changes
+  targetNamespace: infra        # Resources tạo ra sẽ nằm ở namespace infra
+  createNamespace: false        # Đã tạo namespace ở namespaces.yaml
+  valuesContent: |-
+    auth:
+      existingSecret: postgres-secret   # Lấy credentials từ Secret
+      secretKeys:
+        adminPasswordKey: postgres-password
+        userPasswordKey: password
+        replicationPasswordKey: replication-password
+      username: gotalk_user
+      database: gotalk
+
+    primary:
+      persistence:
+        enabled: true
+        size: 5Gi
+        storageClass: local-path   # K3s default storage class
+
+    # Chỉ expose trong cluster, không ra ngoài
+    service:
+      type: ClusterIP
+
+    # Metrics cho monitoring (optional)
+    metrics:
+      enabled: false

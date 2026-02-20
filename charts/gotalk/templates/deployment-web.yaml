@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gotalk-web
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: gotalk-web
+    {{ include "gotalk.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.web.replicas }}
+  selector:
+    matchLabels:
+      app: gotalk-web
+  template:
+    metadata:
+      labels:
+        app: gotalk-web
+    spec:
+      containers:
+        - name: web
+          image: "{{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}"
+          imagePullPolicy: {{ .Values.web.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.web.service.port }}
+          env:
+            {{- range $key, $val := .Values.web.env }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+            {{- end }}
+          # Sensitive vars từ Secret (NEXT_PUBLIC_GOOGLE_CLIENT_ID, etc.)
+          envFrom:
+            - secretRef:
+                name: {{ .Values.existingSecrets.web }}
+          resources:
+            {{- toYaml .Values.web.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.web.service.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.web.service.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10

@@ -1,0 +1,16 @@
+---
+# Namespace cho shared infrastructure (DB, Redis, MinIO, Mailpit)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infra
+  labels:
+    app.kubernetes.io/managed-by: kubectl
+---
+# Namespace cho GoTalk app
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gotalk
+  labels:
+    app.kubernetes.io/managed-by: kubectl

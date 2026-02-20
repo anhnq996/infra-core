@@ -1,0 +1,54 @@
+---
+# Ingress cho GoTalk API
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gotalk-api
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: {{ .Values.api.ingress.entrypoint }}
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ .Values.api.ingress.certResolver }}
+    # WebSocket support
+    traefik.ingress.kubernetes.io/router.middlewares: ""
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: {{ .Values.api.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gotalk-api
+                port:
+                  number: {{ .Values.api.service.port }}
+  tls:
+    - hosts:
+        - {{ .Values.api.ingress.host }}
+---
+# Ingress cho GoTalk Web
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gotalk-web
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: {{ .Values.web.ingress.entrypoint }}
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ .Values.web.ingress.certResolver }}
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: {{ .Values.web.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gotalk-web
+                port:
+                  number: {{ .Values.web.service.port }}
+  tls:
+    - hosts:
+        - {{ .Values.web.ingress.host }}

@@ -1,0 +1,83 @@
+---
+# Mailpit Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailpit
+  namespace: infra
+  labels:
+    app: mailpit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mailpit
+  template:
+    metadata:
+      labels:
+        app: mailpit
+    spec:
+      containers:
+        - name: mailpit
+          image: axllent/mailpit:latest
+          ports:
+            - containerPort: 8025   # Web UI
+            - containerPort: 1025   # SMTP
+          env:
+            - name: MP_SMTP_AUTH_ACCEPT_ANY
+              value: "1"
+            - name: MP_SMTP_AUTH_ALLOW_INSECURE
+              value: "1"
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+---
+# Mailpit Service (SMTP accessible trong cluster)
+apiVersion: v1
+kind: Service
+metadata:
+  name: mailpit
+  namespace: infra
+spec:
+  selector:
+    app: mailpit
+  ports:
+    - name: smtp
+      port: 1025
+      targetPort: 1025
+    - name: web
+      port: 8025
+      targetPort: 8025
+  type: ClusterIP
+---
+# Mailpit Ingress (Web UI) - bảo vệ bằng Basic Auth từ Traefik Middleware
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mailpit
+  namespace: infra
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+    # Bảo vệ bằng Basic Auth (tái sử dụng middleware của dashboard)
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-dashboard-auth@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: mail.anhnq.io.vn
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mailpit
+                port:
+                  number: 8025
+  tls:
+    - hosts:
+        - mail.anhnq.io.vn

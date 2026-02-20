@@ -1,0 +1,63 @@
+# ============================================
+# Traefik Dashboard - EXAMPLE (safe to commit)
+# ============================================
+# Hướng dẫn tạo password hash:
+#
+#   1. Cài htpasswd: apt install apache2-utils
+#
+#   2. Tạo hash (thay 'yourpassword'):
+#      htpasswd -nB admin
+#      → admin:$2y$05$xxxxx...
+#
+#   3. Escape ký tự $ (nhân đôi thành $$):
+#      admin:$$2y$$05$$xxxxx...
+#
+#   4. Base64 toàn bộ chuỗi:
+#      echo -n "admin:$$2y$$05$$xxxxx..." | base64
+#
+#   5. Điền vào trường 'users' bên dưới
+#
+#   cp dashboard.yaml.example dashboard.yaml
+#   nano dashboard.yaml
+#   kubectl apply -f dashboard.yaml
+#
+# ⚠️  KHÔNG commit dashboard.yaml lên Git! (chứa password hash)
+# ============================================
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: traefik-dashboard-auth
+  namespace: kube-system
+type: Opaque
+data:
+  # echo -n "admin:<hashed_password>" | base64
+  users: REPLACE_BASE64(ADMIN_HTPASSWD_HASH)
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: dashboard-auth
+  namespace: kube-system
+spec:
+  basicAuth:
+    secret: traefik-dashboard-auth
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-dashboard
+  namespace: kube-system
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`traefik.anhnq.io.vn`)
+      kind: Rule
+      middlewares:
+        - name: dashboard-auth
+      services:
+        - name: api@internal
+          kind: TraefikService
+  tls:
+    certResolver: letsencrypt
