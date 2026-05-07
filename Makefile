@@ -2,7 +2,7 @@
 # VPS Infra Core - Makefile (K3s + Helm)
 # ============================================
 
-.PHONY: help setup deploy-core deploy-gotalk deploy status logs
+.PHONY: help setup deploy-core deploy-gotalk deploy-api-docs deploy status logs
 
 KUBECTL = kubectl
 HELM    = helm
@@ -17,10 +17,13 @@ help:
 	@echo "  make deploy          - Deploy toàn bộ hệ thống"
 	@echo "  make deploy-core     - Deploy Traefik + Shared Services"
 	@echo "  make deploy-gotalk   - Deploy GoTalk app"
+	@echo "  make deploy-api-docs - Deploy API Docs"
 	@echo "  make status          - Xem trạng thái cluster"
 	@echo "  make logs-api        - Logs GoTalk API"
 	@echo "  make logs-web        - Logs GoTalk Web"
+	@echo "  make logs-docs       - Logs API Docs"
 	@echo "  make update-gotalk   - Pull image mới + rolling update"
+	@echo "  make update-api-docs - Pull image mới + rolling update API Docs"
 	@echo ""
 
 # ============================================
@@ -41,6 +44,7 @@ setup:
 	@echo "   k8s/core/minio/secret.yaml"
 	@echo "   k8s/apps/gotalk/secret-api.yaml"
 	@echo "   k8s/apps/gotalk/secret-web.yaml"
+	@echo "   k8s/apps/api-docs/secret.yaml"
 	@echo ""
 	@echo "✅ Setup xong. Chạy: make deploy"
 
@@ -107,9 +111,29 @@ update-gotalk:
 	@echo "✅ GoTalk updated!"
 
 # ============================================
+# Deploy API Docs
+# ============================================
+deploy-api-docs:
+	@echo ">>> Deploy API Docs..."
+	$(KUBECTL) apply -f k8s/apps/api-docs/secret.yaml
+	$(HELM) upgrade --install gotalk ./charts/gotalk \
+		--namespace gotalk \
+		--create-namespace \
+		--wait \
+		--timeout 5m
+	@echo "✅ API Docs deployed!"
+	@echo "   Docs: https://api-docs.anhnq.io.vn"
+
+update-api-docs:
+	@echo ">>> Rolling update API Docs (pull latest image)..."
+	$(KUBECTL) rollout restart deployment/api-docs -n gotalk
+	$(KUBECTL) rollout status deployment/api-docs -n gotalk
+	@echo "✅ API Docs updated!"
+
+# ============================================
 # Deploy All
 # ============================================
-deploy: deploy-core deploy-gotalk
+deploy: deploy-core deploy-gotalk deploy-api-docs
 	@echo ""
 	@echo "🚀 Deploy hoàn tất!"
 	@$(MAKE) status
@@ -136,6 +160,9 @@ logs-api:
 
 logs-web:
 	$(KUBECTL) logs -n gotalk -l app=gotalk-web -f --tail=50
+
+logs-docs:
+	$(KUBECTL) logs -n gotalk -l app=api-docs -f --tail=50
 
 logs-traefik:
 	$(KUBECTL) logs -n kube-system -l app.kubernetes.io/name=traefik -f --tail=50
