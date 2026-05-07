@@ -2,7 +2,7 @@
 # VPS Infra Core - Makefile (K3s + Helm)
 # ============================================
 
-.PHONY: help setup deploy-core deploy-gotalk deploy-api-docs deploy status logs
+.PHONY: help setup deploy-core deploy-gotalk deploy-api-docs create-ghcr-secret deploy status logs
 
 KUBECTL = kubectl
 HELM    = helm
@@ -24,6 +24,7 @@ help:
 	@echo "  make logs-docs       - Logs API Docs"
 	@echo "  make update-gotalk   - Pull image mới + rolling update"
 	@echo "  make update-api-docs - Pull image mới + rolling update API Docs"
+	@echo "  make create-ghcr-secret - Tạo secret pull image từ GHCR"
 	@echo ""
 
 # ============================================
@@ -109,6 +110,21 @@ update-gotalk:
 	$(KUBECTL) rollout status deployment/gotalk-api -n gotalk
 	$(KUBECTL) rollout status deployment/gotalk-web -n gotalk
 	@echo "✅ GoTalk updated!"
+
+# ============================================
+# GHCR Image Pull Secret
+# ============================================
+# Cách dùng:
+#   GHCR_USER=anhnq996 GHCR_PAT=ghp_xxx make create-ghcr-secret
+create-ghcr-secret:
+	@echo ">>> Tạo GHCR pull secret..."
+	$(KUBECTL) create secret docker-registry ghcr-login-secret \
+		--docker-server=ghcr.io \
+		--docker-username=$(GHCR_USER) \
+		--docker-password=$(GHCR_PAT) \
+		--namespace gotalk \
+		--dry-run=client -o yaml | $(KUBECTL) apply -f -
+	@echo "✅ GHCR secret đã được tạo/cập nhật"
 
 # ============================================
 # Deploy API Docs

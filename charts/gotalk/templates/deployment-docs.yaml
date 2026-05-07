@@ -16,6 +16,8 @@ spec:
       labels:
         app: api-docs
     spec:
+      imagePullSecrets:
+        - name: {{ .Values.docs.imagePullSecret }}
       containers:
         - name: docs
           image: "{{ .Values.docs.image.repository }}:{{ .Values.docs.image.tag }}"

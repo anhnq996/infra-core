@@ -145,6 +145,11 @@ docs:
       memory: "256Mi"
       cpu: "250m"
 
+  # ---- Image Pull Secret ----
+  # Secret để pull image từ GHCR (GitHub Container Registry)
+  # Tạo bằng lệnh trong Makefile: make create-ghcr-secret
+  imagePullSecret: ghcr-login-secret
+
   # ---- Non-sensitive env vars ----
   env:
     NODE_ENV: production
