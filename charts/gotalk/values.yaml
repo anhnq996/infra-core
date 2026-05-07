@@ -16,8 +16,8 @@ api:
   # Tên image Docker Hub của BE repo (gotalk-api)
   # Format: <dockerhub-username>/<repo-name>
   image:
-    repository: anhnq996/gotalk-api   # ← SỬA chỗ này
-    tag: v260220.1                    # ← CI/CD sẽ update tag này
+    repository: anhnq996/gotalk-api # ← SỬA chỗ này
+    tag: v260220.1 # ← CI/CD sẽ update tag này
     pullPolicy: Always
 
   replicas: 1
@@ -86,7 +86,7 @@ web:
   # ---- Image ----
   # Tên image Docker Hub của FE repo (gotalk-web)
   image:
-    repository: anhnq996/gotalk-web   # ← SỬA chỗ này
+    repository: anhnq996/gotalk-web # ← SỬA chỗ này
     tag: v260220.1
     pullPolicy: Always
 
@@ -116,6 +116,41 @@ web:
     NEXT_PUBLIC_API_URL: "https://api-gotalk.anhnq.io.vn/api/v1"
 
 # ============================================
+# Docs (API Documentation - Next.js)
+# ============================================
+docs:
+  # ---- Image ----
+  # Image từ GitHub Container Registry
+  image:
+    repository: ghcr.io/anhnq996/api-docs
+    tag: v1.0
+    pullPolicy: Always
+
+  replicas: 1
+
+  service:
+    type: ClusterIP
+    port: 3000
+
+  ingress:
+    host: api-docs.anhnq.io.vn
+    certResolver: letsencrypt
+    entrypoint: websecure
+
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+
+  # ---- Non-sensitive env vars ----
+  env:
+    NODE_ENV: production
+
+
+# ============================================
 # Secrets References
 # ============================================
 # Tên Kubernetes Secret chứa sensitive vars.
@@ -123,5 +158,6 @@ web:
 #   kubectl apply -f k8s/apps/gotalk/secret-api.yaml
 #   kubectl apply -f k8s/apps/gotalk/secret-web.yaml
 existingSecrets:
-  api: gotalk-api-secret   # inject vào API container
-  web: gotalk-web-secret   # inject vào Web container
+  api: gotalk-api-secret # inject vào API container
+  web: gotalk-web-secret # inject vào Web container
+  docs: api-docs-secret # inject vào Docs container

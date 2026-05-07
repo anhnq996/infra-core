@@ -52,3 +52,29 @@ spec:
   tls:
     - hosts:
         - {{ .Values.web.ingress.host }}
+---
+# Ingress cho GoTalk Docs (API Documentation)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-docs
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: {{ .Values.docs.ingress.entrypoint }}
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ .Values.docs.ingress.certResolver }}
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: {{ .Values.docs.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-docs
+                port:
+                  number: {{ .Values.docs.service.port }}
+  tls:
+    - hosts:
+        - {{ .Values.docs.ingress.host }}

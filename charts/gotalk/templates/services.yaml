@@ -24,3 +24,16 @@ spec:
     - port: {{ .Values.web.service.port }}
       targetPort: {{ .Values.web.service.port }}
   type: {{ .Values.web.service.type }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-docs
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: api-docs
+  ports:
+    - port: {{ .Values.docs.service.port }}
+      targetPort: {{ .Values.docs.service.port }}
+  type: {{ .Values.docs.service.type }}

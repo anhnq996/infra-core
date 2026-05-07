@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-docs
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: api-docs
+    {{ include "gotalk.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.docs.replicas }}
+  selector:
+    matchLabels:
+      app: api-docs
+  template:
+    metadata:
+      labels:
+        app: api-docs
+    spec:
+      containers:
+        - name: docs
+          image: "{{ .Values.docs.image.repository }}:{{ .Values.docs.image.tag }}"
+          imagePullPolicy: {{ .Values.docs.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.docs.service.port }}
+          env:
+            {{- range $key, $val := .Values.docs.env }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+            {{- end }}
+          # Sensitive env vars từ Secret
+          envFrom:
+            - secretRef:
+                name: {{ .Values.existingSecrets.docs }}
+          resources:
+            {{- toYaml .Values.docs.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.docs.service.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.docs.service.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
