@@ -122,7 +122,7 @@ docs:
   # ---- Image ----
   # Image từ GitHub Container Registry
   image:
-    repository: ghcr.io/anhnq996/api-docs
+    repository: anhnq996/api-docs
     tag: v1.0
     pullPolicy: Always
 
@@ -153,7 +153,6 @@ docs:
   # ---- Non-sensitive env vars ----
   env:
     NODE_ENV: production
-
 
 # ============================================
 # Secrets References
