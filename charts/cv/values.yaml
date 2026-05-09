@@ -1,0 +1,27 @@
+# ============================================
+# CV Helm Chart - Values
+# ============================================
+cv:
+  image:
+    repository: anhnq996/cv
+    tag: latest
+    pullPolicy: Always
+
+  replicas: 1
+
+  service:
+    type: ClusterIP
+    port: 3000
+
+  ingress:
+    host: cv.anhnq.io.vn
+    certResolver: letsencrypt
+    entrypoint: websecure
+
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"

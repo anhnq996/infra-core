@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cv-site
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: cv-site
+    {{ include "cv.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.cv.replicas }}
+  selector:
+    matchLabels:
+      app: cv-site
+  template:
+    metadata:
+      labels:
+        app: cv-site
+    spec:
+      containers:
+        - name: cv
+          image: "{{ .Values.cv.image.repository }}:{{ .Values.cv.image.tag }}"
+          imagePullPolicy: {{ .Values.cv.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.cv.service.port }}
+          resources:
+            {{- toYaml .Values.cv.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.cv.service.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.cv.service.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10

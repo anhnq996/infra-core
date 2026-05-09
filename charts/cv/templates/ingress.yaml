@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cv-site
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: {{ .Values.cv.ingress.entrypoint }}
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ .Values.cv.ingress.certResolver }}
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: {{ .Values.cv.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cv-site
+                port:
+                  number: {{ .Values.cv.service.port }}
+  tls:
+    - hosts:
+        - {{ .Values.cv.ingress.host }}

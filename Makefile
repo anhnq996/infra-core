@@ -2,7 +2,7 @@
 # VPS Infra Core - Makefile (K3s + Helm)
 # ============================================
 
-.PHONY: help setup deploy-core deploy-gotalk deploy-api-docs create-ghcr-secret deploy status logs
+.PHONY: help setup deploy-core deploy-gotalk deploy-api-docs deploy-cv create-ghcr-secret deploy status logs
 
 KUBECTL = kubectl
 HELM    = helm
@@ -18,12 +18,15 @@ help:
 	@echo "  make deploy-core     - Deploy Traefik + Shared Services"
 	@echo "  make deploy-gotalk   - Deploy GoTalk app"
 	@echo "  make deploy-api-docs - Deploy API Docs"
+	@echo "  make deploy-cv       - Deploy CV page"
 	@echo "  make status          - Xem trạng thái cluster"
 	@echo "  make logs-api        - Logs GoTalk API"
 	@echo "  make logs-web        - Logs GoTalk Web"
 	@echo "  make logs-docs       - Logs API Docs"
+	@echo "  make logs-cv         - Logs CV page"
 	@echo "  make update-gotalk   - Pull image mới + rolling update"
 	@echo "  make update-api-docs - Pull image mới + rolling update API Docs"
+	@echo "  make update-cv       - Pull image mới + rolling update CV"
 	@echo "  make create-ghcr-secret - Tạo secret pull image từ GHCR"
 	@echo ""
 
@@ -147,9 +150,28 @@ update-api-docs:
 	@echo "✅ API Docs updated!"
 
 # ============================================
+# Deploy CV
+# ============================================
+deploy-cv:
+	@echo ">>> Deploy CV page..."
+	$(HELM) upgrade --install cv ./charts/cv \
+		--namespace gotalk \
+		--create-namespace \
+		--wait \
+		--timeout 5m
+	@echo "✅ CV deployed!"
+	@echo "   CV: https://cv.anhnq.io.vn"
+
+update-cv:
+	@echo ">>> Rolling update CV (pull latest image)..."
+	$(KUBECTL) rollout restart deployment/cv-site -n gotalk
+	$(KUBECTL) rollout status deployment/cv-site -n gotalk
+	@echo "✅ CV updated!"
+
+# ============================================
 # Deploy All
 # ============================================
-deploy: deploy-core deploy-gotalk deploy-api-docs
+deploy: deploy-core deploy-gotalk deploy-api-docs deploy-cv
 	@echo ""
 	@echo "🚀 Deploy hoàn tất!"
 	@$(MAKE) status
@@ -179,6 +201,9 @@ logs-web:
 
 logs-docs:
 	$(KUBECTL) logs -n gotalk -l app=api-docs -f --tail=50
+
+logs-cv:
+	$(KUBECTL) logs -n gotalk -l app=cv-site -f --tail=50
 
 logs-traefik:
 	$(KUBECTL) logs -n kube-system -l app.kubernetes.io/name=traefik -f --tail=50
