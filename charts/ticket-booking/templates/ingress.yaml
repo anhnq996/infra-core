@@ -1,0 +1,50 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ticket-booking-api
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: {{ .Values.api.ingress.entrypoint }}
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ .Values.api.ingress.certResolver }}
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: {{ .Values.api.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ticket-booking-api
+                port:
+                  number: {{ .Values.api.service.port }}
+  tls:
+    - hosts:
+        - {{ .Values.api.ingress.host }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ticket-booking-web
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: {{ .Values.web.ingress.entrypoint }}
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ .Values.web.ingress.certResolver }}
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: {{ .Values.web.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ticket-booking-web
+                port:
+                  number: {{ .Values.web.service.port }}
+  tls:
+    - hosts:
+        - {{ .Values.web.ingress.host }}

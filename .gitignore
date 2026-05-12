@@ -9,6 +9,7 @@ k8s/core/redis/secret.yaml
 k8s/core/minio/secret.yaml
 k8s/apps/gotalk/secret-api.yaml
 k8s/apps/gotalk/secret-web.yaml
+k8s/apps/ticket-booking/secret-api.yaml
 k8s/core/traefik/dashboard.yaml
 
 # ============================================

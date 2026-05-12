@@ -1,0 +1,13 @@
+apiVersion: v2
+name: ticket-booking
+description: Ticket Booking application - API + Next.js frontend
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - ticket-booking
+  - booking
+  - events
+maintainers:
+  - name: anhnq
+    email: anhnq@anhnq.io.vn

@@ -2,7 +2,7 @@
 # VPS Infra Core - Makefile (K3s + Helm)
 # ============================================
 
-.PHONY: help setup deploy-core deploy-gotalk deploy-api-docs deploy-cv create-ghcr-secret deploy status logs
+.PHONY: help setup deploy-core deploy-gotalk deploy-ticket-booking deploy-api-docs deploy-cv create-ghcr-secret deploy status logs logs-ticket-api logs-ticket-web update-ticket-booking
 
 KUBECTL = kubectl
 HELM    = helm
@@ -17,6 +17,7 @@ help:
 	@echo "  make deploy          - Deploy toàn bộ hệ thống"
 	@echo "  make deploy-core     - Deploy Traefik + Shared Services"
 	@echo "  make deploy-gotalk   - Deploy GoTalk app"
+	@echo "  make deploy-ticket-booking - Deploy Ticket Booking app"
 	@echo "  make deploy-api-docs - Deploy API Docs"
 	@echo "  make deploy-cv       - Deploy CV page"
 	@echo "  make status          - Xem trạng thái cluster"
@@ -24,7 +25,10 @@ help:
 	@echo "  make logs-web        - Logs GoTalk Web"
 	@echo "  make logs-docs       - Logs API Docs"
 	@echo "  make logs-cv         - Logs CV page"
+	@echo "  make logs-ticket-api - Logs Ticket Booking API"
+	@echo "  make logs-ticket-web - Logs Ticket Booking Web"
 	@echo "  make update-gotalk   - Pull image mới + rolling update"
+	@echo "  make update-ticket-booking - Pull image moi + rolling update Ticket Booking"
 	@echo "  make update-api-docs - Pull image mới + rolling update API Docs"
 	@echo "  make update-cv       - Pull image mới + rolling update CV"
 	@echo "  make create-ghcr-secret - Tạo secret pull image từ GHCR"
@@ -48,6 +52,7 @@ setup:
 	@echo "   k8s/core/minio/secret.yaml"
 	@echo "   k8s/apps/gotalk/secret-api.yaml"
 	@echo "   k8s/apps/gotalk/secret-web.yaml"
+	@echo "   k8s/apps/ticket-booking/secret-api.yaml"
 	@echo "   k8s/apps/api-docs/secret.yaml"
 	@echo ""
 	@echo "✅ Setup xong. Chạy: make deploy"
@@ -115,6 +120,30 @@ update-gotalk:
 	@echo "✅ GoTalk updated!"
 
 # ============================================
+# Deploy Ticket Booking App
+# ============================================
+deploy-ticket-booking:
+	@echo ">>> Deploy Ticket Booking App..."
+	$(KUBECTL) apply -f k8s/namespaces/namespaces.yaml
+	$(KUBECTL) apply -f k8s/apps/ticket-booking/secret-api.yaml
+	$(HELM) upgrade --install ticket-booking ./charts/ticket-booking \
+		--namespace ticket-booking \
+		--create-namespace \
+		--wait \
+		--timeout 5m
+	@echo "Ticket Booking deployed!"
+	@echo "   Web: https://booking.anhnq.io.vn"
+	@echo "   API: https://api-booking.anhnq.io.vn"
+
+update-ticket-booking:
+	@echo ">>> Rolling update Ticket Booking (pull latest image)..."
+	$(KUBECTL) rollout restart deployment/ticket-booking-api -n ticket-booking
+	$(KUBECTL) rollout restart deployment/ticket-booking-web -n ticket-booking
+	$(KUBECTL) rollout status deployment/ticket-booking-api -n ticket-booking
+	$(KUBECTL) rollout status deployment/ticket-booking-web -n ticket-booking
+	@echo "Ticket Booking updated!"
+
+# ============================================
 # GHCR Image Pull Secret
 # ============================================
 # Cách dùng:
@@ -171,7 +200,7 @@ update-cv:
 # ============================================
 # Deploy All
 # ============================================
-deploy: deploy-core deploy-gotalk deploy-api-docs deploy-cv
+deploy: deploy-core deploy-gotalk deploy-ticket-booking deploy-api-docs deploy-cv
 	@echo ""
 	@echo "🚀 Deploy hoàn tất!"
 	@$(MAKE) status
@@ -182,13 +211,16 @@ deploy: deploy-core deploy-gotalk deploy-api-docs deploy-cv
 status:
 	@echo ""
 	@echo "=== Namespaces ==="
-	@$(KUBECTL) get namespaces infra gotalk 2>/dev/null || true
+	@$(KUBECTL) get namespaces infra gotalk ticket-booking 2>/dev/null || true
 	@echo ""
 	@echo "=== Pods (infra) ==="
 	@$(KUBECTL) get pods -n infra 2>/dev/null || true
 	@echo ""
 	@echo "=== Pods (gotalk) ==="
 	@$(KUBECTL) get pods -n gotalk 2>/dev/null || true
+	@echo ""
+	@echo "=== Pods (ticket-booking) ==="
+	@$(KUBECTL) get pods -n ticket-booking 2>/dev/null || true
 	@echo ""
 	@echo "=== Ingress ==="
 	@$(KUBECTL) get ingress -A 2>/dev/null || true
@@ -204,6 +236,12 @@ logs-docs:
 
 logs-cv:
 	$(KUBECTL) logs -n gotalk -l app=cv-site -f --tail=50
+
+logs-ticket-api:
+	$(KUBECTL) logs -n ticket-booking -l app=ticket-booking-api -f --tail=50
+
+logs-ticket-web:
+	$(KUBECTL) logs -n ticket-booking -l app=ticket-booking-web -f --tail=50
 
 logs-traefik:
 	$(KUBECTL) logs -n kube-system -l app.kubernetes.io/name=traefik -f --tail=50
