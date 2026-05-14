@@ -2,7 +2,7 @@
 # VPS Infra Core - Makefile (K3s + Helm)
 # ============================================
 
-.PHONY: help setup deploy-core deploy-gotalk deploy-ticket-booking deploy-api-docs deploy-cv create-ghcr-secret deploy status logs logs-ticket-api logs-ticket-web update-ticket-booking
+.PHONY: help setup deploy-core deploy-gotalk deploy-ticket-booking deploy-api-docs deploy-cv deploy-english create-ghcr-secret deploy status logs logs-ticket-api logs-ticket-web update-ticket-booking update-english
 
 KUBECTL = kubectl
 HELM    = helm
@@ -20,17 +20,20 @@ help:
 	@echo "  make deploy-ticket-booking - Deploy Ticket Booking app"
 	@echo "  make deploy-api-docs - Deploy API Docs"
 	@echo "  make deploy-cv       - Deploy CV page"
+	@echo "  make deploy-english  - Deploy English study app"
 	@echo "  make status          - Xem trạng thái cluster"
 	@echo "  make logs-api        - Logs GoTalk API"
 	@echo "  make logs-web        - Logs GoTalk Web"
 	@echo "  make logs-docs       - Logs API Docs"
 	@echo "  make logs-cv         - Logs CV page"
+	@echo "  make logs-english    - Logs English study app"
 	@echo "  make logs-ticket-api - Logs Ticket Booking API"
 	@echo "  make logs-ticket-web - Logs Ticket Booking Web"
 	@echo "  make update-gotalk   - Pull image mới + rolling update"
 	@echo "  make update-ticket-booking - Pull image moi + rolling update Ticket Booking"
 	@echo "  make update-api-docs - Pull image mới + rolling update API Docs"
 	@echo "  make update-cv       - Pull image mới + rolling update CV"
+	@echo "  make update-english  - Pull latest image + rolling update English"
 	@echo "  make create-ghcr-secret - Tạo secret pull image từ GHCR"
 	@echo ""
 
@@ -198,9 +201,28 @@ update-cv:
 	@echo "✅ CV updated!"
 
 # ============================================
+# Deploy English Study App
+# ============================================
+deploy-english:
+	@echo ">>> Deploy English study app..."
+	$(HELM) upgrade --install english ./charts/english \
+		--namespace gotalk \
+		--create-namespace \
+		--wait \
+		--timeout 5m
+	@echo "English study app deployed!"
+	@echo "   Web: https://englist.anhnq.io.vn"
+
+update-english:
+	@echo ">>> Rolling update English study app (pull latest image)..."
+	$(KUBECTL) rollout restart deployment/english-web -n gotalk
+	$(KUBECTL) rollout status deployment/english-web -n gotalk
+	@echo "English study app updated!"
+
+# ============================================
 # Deploy All
 # ============================================
-deploy: deploy-core deploy-gotalk deploy-ticket-booking deploy-api-docs deploy-cv
+deploy: deploy-core deploy-gotalk deploy-ticket-booking deploy-api-docs deploy-cv deploy-english
 	@echo ""
 	@echo "🚀 Deploy hoàn tất!"
 	@$(MAKE) status
@@ -236,6 +258,9 @@ logs-docs:
 
 logs-cv:
 	$(KUBECTL) logs -n gotalk -l app=cv-site -f --tail=50
+
+logs-english:
+	$(KUBECTL) logs -n gotalk -l app=english-web -f --tail=50
 
 logs-ticket-api:
 	$(KUBECTL) logs -n ticket-booking -l app=ticket-booking-api -f --tail=50

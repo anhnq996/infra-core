@@ -1,0 +1,12 @@
+apiVersion: v2
+name: english
+description: English study web app
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - english
+  - vocabulary
+maintainers:
+  - name: anhnq
+    email: anhnq@anhnq.io.vn

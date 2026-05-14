@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: english-web
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: english-web
+    {{ include "english.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.english.replicas }}
+  selector:
+    matchLabels:
+      app: english-web
+  template:
+    metadata:
+      labels:
+        app: english-web
+    spec:
+      containers:
+        - name: english
+          image: "{{ .Values.english.image.repository }}:{{ .Values.english.image.tag }}"
+          imagePullPolicy: {{ .Values.english.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.english.service.port }}
+          env:
+            {{- range $key, $value := .Values.english.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.english.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.english.service.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.english.service.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10

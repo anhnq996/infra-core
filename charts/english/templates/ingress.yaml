@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: english-web
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: {{ .Values.english.ingress.entrypoint }}
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ .Values.english.ingress.certResolver }}
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: {{ .Values.english.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: english-web
+                port:
+                  number: {{ .Values.english.service.port }}
+  tls:
+    - hosts:
+        - {{ .Values.english.ingress.host }}

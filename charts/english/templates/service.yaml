@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: english-web
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: english-web
+  ports:
+    - port: {{ .Values.english.service.port }}
+      targetPort: {{ .Values.english.service.port }}
+  type: {{ .Values.english.service.type }}

@@ -1,0 +1,32 @@
+# ============================================
+# English Helm Chart - Values
+# ============================================
+english:
+  image:
+    repository: anhnq996/english
+    tag: latest
+    pullPolicy: Always
+
+  replicas: 1
+
+  service:
+    type: ClusterIP
+    port: 3000
+
+  ingress:
+    host: englist.anhnq.io.vn
+    certResolver: letsencrypt
+    entrypoint: websecure
+
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+
+  env:
+    NODE_ENV: production
+    PORT: "3000"
+    HOSTNAME: "0.0.0.0"
