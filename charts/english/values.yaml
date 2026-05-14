@@ -14,7 +14,7 @@ english:
     port: 3000
 
   ingress:
-    host: englist.anhnq.io.vn
+    host: english.anhnq.io.vn
     certResolver: letsencrypt
     entrypoint: websecure
 

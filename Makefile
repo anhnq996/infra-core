@@ -211,7 +211,7 @@ deploy-english:
 		--wait \
 		--timeout 5m
 	@echo "English study app deployed!"
-	@echo "   Web: https://englist.anhnq.io.vn"
+	@echo "   Web: https://english.anhnq.io.vn"
 
 update-english:
 	@echo ">>> Rolling update English study app (pull latest image)..."
